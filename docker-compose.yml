@@ -1,0 +1,45 @@
+version: '3.1'
+
+services:
+  backend:
+    build:
+      context: ./the_rush_backend/
+      dockerfile: Dockerfile
+    container_name: the_rush_backend
+    tty: true
+    volumes:
+      - ./the_rush_backend:/the_rush_backend
+    environment:
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: the_rush_backend_dev
+      PGPORT: 5432
+      PGHOST: db
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  frontend:
+    build:
+      context: ./the_rush_frontend/
+      dockerfile: Dockerfile
+    container_name: the_rush_frontend
+    tty: true
+    volumes:
+      - ./the_rush_frontend:/the_rush_frontend
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

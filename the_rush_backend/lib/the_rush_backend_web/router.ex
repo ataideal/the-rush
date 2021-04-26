@@ -7,6 +7,7 @@ defmodule TheRushBackendWeb.Router do
 
   scope "/api", TheRushBackendWeb do
     pipe_through :api
+    resources "/scores", PlayerScoreController
   end
 
   # Enables LiveDashboard only for development

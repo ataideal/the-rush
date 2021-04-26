@@ -14,4 +14,4 @@ WORKDIR $APP_HOME
 
 RUN mix deps.get
 
-CMD ["/bin/bash"]
+CMD ["docker/entrypoint.sh"]

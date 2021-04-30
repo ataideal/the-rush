@@ -14,4 +14,5 @@ if [[ -z `psql -Atqc "\\list the_rush_backend_dev"` ]]; then
   mix run priv/repo/seeds.exs
 fi
 
+mix deps.get
 exec mix phx.server

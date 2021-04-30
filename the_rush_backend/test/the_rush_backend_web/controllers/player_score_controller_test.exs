@@ -2,7 +2,6 @@ defmodule TheRushBackendWeb.PlayerScoreControllerTest do
   use TheRushBackendWeb.ConnCase
 
   alias TheRushBackend.Scores
-  alias TheRushBackend.Scores.PlayerScore
 
   @create_attrs %{
     att: 42,
@@ -21,28 +20,36 @@ defmodule TheRushBackendWeb.PlayerScoreControllerTest do
     yds: 120.5,
     yds_g: 120.5
   }
-  @update_attrs %{
-    att: 43,
-    att_g: 456.7,
-    avg: 456.7,
-    first: 43,
-    first_percent: 456.7,
-    forty_plus: 43,
-    fum: 43,
-    lng: 456.7,
-    player: "some updated player",
-    pos: "some updated pos",
-    td: 43,
-    team: "some updated team",
-    twenty_plus: 43,
-    yds: 456.7,
-    yds_g: 456.7
-  }
-  @invalid_attrs %{att: nil, att_g: nil, avg: nil, first: nil, first_percent: nil, forty_plus: nil, fum: nil, lng: nil, player: nil, pos: nil, td: nil, team: nil, twenty_plus: nil, yds: nil, yds_g: nil}
 
-  def fixture(:player_score) do
-    {:ok, player_score} = Scores.create_player_score(@create_attrs)
+  @default_player_score_json %{
+    "att" => 42,
+    "att_g" => 120.5,
+    "avg" => 120.5,
+    "first" => 42,
+    "first_percent" => 120.5,
+    "forty_plus" => 42,
+    "fum" => 42,
+    "id" => 1,
+    "lng" => "120.5",
+    "lng_t" => nil,
+    "player" => "some player",
+    "pos" => "some pos",
+    "td" => 42,
+    "team" => "some team",
+    "twenty_plus" => 42,
+    "yds" => 120.5,
+    "yds_g" => 120.5
+  }
+
+  @default_filters %{"player" => "","sort_by" => "player","sort_desc" => "false","per_page" => 10,"page" => 1}
+
+  def fixture(:player_score, opts) do
+    {:ok, player_score} = opts |> Enum.into(@create_attrs) |> Scores.create_player_score()
     player_score
+  end
+
+  def fixture(:filter, opts) do
+    opts |> Enum.into(@default_filters)
   end
 
   setup %{conn: conn} do
@@ -50,95 +57,55 @@ defmodule TheRushBackendWeb.PlayerScoreControllerTest do
   end
 
   describe "index" do
-    test "lists all player_scores", %{conn: conn} do
-      conn = get(conn, Routes.player_score_path(conn, :index))
+    test "when player_scores is empty list returns empty array and total 0", %{conn: conn} do
+
+      conn = get(conn, Routes.player_score_path(conn, :index), fixture(:filter, %{}))
       assert json_response(conn, 200)["data"] == []
-    end
-  end
-
-  describe "create player_score" do
-    test "renders player_score when data is valid", %{conn: conn} do
-      conn = post(conn, Routes.player_score_path(conn, :create), player_score: @create_attrs)
-      assert %{"id" => id} = json_response(conn, 201)["data"]
-
-      conn = get(conn, Routes.player_score_path(conn, :show, id))
-
-      assert %{
-               "id" => id,
-               "att" => 42,
-               "att_g" => 120.5,
-               "avg" => 120.5,
-               "first" => 42,
-               "first_percent" => 120.5,
-               "forty_plus" => 42,
-               "fum" => 42,
-               "lng" => 120.5,
-               "player" => "some player",
-               "pos" => "some pos",
-               "td" => 42,
-               "team" => "some team",
-               "twenty_plus" => 42,
-               "yds" => 120.5,
-               "yds_g" => 120.5
-             } = json_response(conn, 200)["data"]
+      assert json_response(conn, 200)["pagination"] == %{"total"=> 0}
     end
 
-    test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, Routes.player_score_path(conn, :create), player_score: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
-    end
-  end
-
-  describe "update player_score" do
-    setup [:create_player_score]
-
-    test "renders player_score when data is valid", %{conn: conn, player_score: %PlayerScore{id: id} = player_score} do
-      conn = put(conn, Routes.player_score_path(conn, :update, player_score), player_score: @update_attrs)
-      assert %{"id" => ^id} = json_response(conn, 200)["data"]
-
-      conn = get(conn, Routes.player_score_path(conn, :show, id))
-
-      assert %{
-               "id" => id,
-               "att" => 43,
-               "att_g" => 456.7,
-               "avg" => 456.7,
-               "first" => 43,
-               "first_percent" => 456.7,
-               "forty_plus" => 43,
-               "fum" => 43,
-               "lng" => 456.7,
-               "player" => "some updated player",
-               "pos" => "some updated pos",
-               "td" => 43,
-               "team" => "some updated team",
-               "twenty_plus" => 43,
-               "yds" => 456.7,
-               "yds_g" => 456.7
-             } = json_response(conn, 200)["data"]
+    test "when player_scores has users returns array ordered by name and total", %{conn: conn} do
+      player_score = fixture(:player_score, %{})
+      player_score_2 = fixture(:player_score, %{player: "another player"})
+      conn = get(conn, Routes.player_score_path(conn, :index), fixture(:filter, %{}))
+      assert json_response(conn, 200)["data"] == [
+        %{"id" => player_score_2.id, "player" => player_score_2.player} |> Enum.into(@default_player_score_json),
+        %{"id" => player_score.id} |> Enum.into(@default_player_score_json)
+      ]
+      assert json_response(conn, 200)["pagination"] == %{"total"=> 2}
     end
 
-    test "renders errors when data is invalid", %{conn: conn, player_score: player_score} do
-      conn = put(conn, Routes.player_score_path(conn, :update, player_score), player_score: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
+    test "when player_scores filter by name returns array ordered by name and filtered and total", %{conn: conn} do
+      fixture(:player_score, %{})
+      player_score_2 = fixture(:player_score, %{player: "another player"})
+      conn = get(conn, Routes.player_score_path(conn, :index), fixture(:filter, %{"player"=> "another"}))
+      assert json_response(conn, 200)["data"] == [
+        %{"id" => player_score_2.id, "player" => player_score_2.player} |> Enum.into(@default_player_score_json)
+      ]
+      assert json_response(conn, 200)["pagination"] == %{"total"=> 1}
     end
-  end
 
-  describe "delete player_score" do
-    setup [:create_player_score]
-
-    test "deletes chosen player_score", %{conn: conn, player_score: player_score} do
-      conn = delete(conn, Routes.player_score_path(conn, :delete, player_score))
-      assert response(conn, 204)
-
-      assert_error_sent 404, fn ->
-        get(conn, Routes.player_score_path(conn, :show, player_score))
-      end
+    test "when player_scores order by desc lng returns array ordered by lng", %{conn: conn} do
+      player_score = fixture(:player_score, %{})
+      player_score_2 = fixture(:player_score, %{lng: 200.0})
+      conn = get(conn, Routes.player_score_path(conn, :index),
+                  fixture(:filter, %{"sort_by"=>"lng", "sort_desc" => "true" }))
+      assert json_response(conn, 200)["data"] == [
+        %{"id" => player_score_2.id, "lng" => Float.to_string(player_score_2.lng)} |> Enum.into(@default_player_score_json),
+        %{"id" => player_score.id} |> Enum.into(@default_player_score_json)
+      ]
+      assert json_response(conn, 200)["pagination"] == %{"total"=> 2}
     end
-  end
 
-  defp create_player_score(_) do
-    player_score = fixture(:player_score)
-    %{player_score: player_score}
+    test "filter page 2 returns array with page 2", %{conn: conn} do
+      player_score = fixture(:player_score, %{})
+      fixture(:player_score, %{player: "a"})
+      conn = get(conn, Routes.player_score_path(conn, :index),fixture(:filter, %{"page"=>2, "per_page" => 1 }))
+      assert json_response(conn, 200)["data"] == [
+        %{"id" => player_score.id} |> Enum.into(@default_player_score_json)
+      ]
+      assert json_response(conn, 200)["pagination"] == %{"total"=> 2}
+    end
+
   end
 end

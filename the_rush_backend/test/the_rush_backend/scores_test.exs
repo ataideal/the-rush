@@ -21,8 +21,6 @@ defmodule TheRushBackend.ScoresTest do
       player_score
     end
 
-
-
     test "list_player_scores/0 returns all player_scores" do
       player_score = player_score_fixture()
       assert Scores.list_player_scores() == [player_score]
@@ -111,6 +109,33 @@ defmodule TheRushBackend.ScoresTest do
       assert player_score.twenty_plus == 4
       assert player_score.yds == 1043.0
       assert player_score.yds_g == 65.2
+    end
+
+    test "create_player_score_from_external_data/1 normalize yds float data and creates a player_score" do
+
+      assert {:ok, %PlayerScore{} = player_score} =
+        %{"Yds"=> 10.0} |> Enum.into(@external_data) |> Scores.create_player_score_from_external_data()
+      assert player_score.att == 205
+      assert player_score.att_g == 12.8
+      assert player_score.avg == 5.1
+      assert player_score.first == 49
+      assert player_score.first_percent == 23.9
+      assert player_score.forty_plus == 2
+      assert player_score.fum == 2
+      assert player_score.lng == 75
+      assert player_score.lng_t == "T"
+      assert player_score.player == "Mark Ingram"
+      assert player_score.pos == "RB"
+      assert player_score.td == 6
+      assert player_score.team == "NO"
+      assert player_score.twenty_plus == 4
+      assert player_score.yds == 10.0
+      assert player_score.yds_g == 65.2
+    end
+
+    test "count_player_score/0 returns player_score count" do
+      player_score_fixture()
+      assert Scores.count_player_score() == 1
     end
   end
 

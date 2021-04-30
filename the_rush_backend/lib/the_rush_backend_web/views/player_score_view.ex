@@ -2,12 +2,11 @@ defmodule TheRushBackendWeb.PlayerScoreView do
   use TheRushBackendWeb, :view
   alias TheRushBackendWeb.PlayerScoreView
 
-  def render("index.json", %{player_scores: player_scores}) do
-    %{data: render_many(player_scores, PlayerScoreView, "player_score.json")}
-  end
-
-  def render("show.json", %{player_score: player_score}) do
-    %{data: render_one(player_score, PlayerScoreView, "player_score.json")}
+  def render("paginated.json", %{player_scores: player_scores, pagination: pagination}) do
+    %{
+      data: render_many(player_scores, PlayerScoreView, "player_score.json"),
+      pagination: pagination
+    }
   end
 
   def render("player_score.json", %{player_score: player_score}) do
@@ -21,7 +20,7 @@ defmodule TheRushBackendWeb.PlayerScoreView do
       avg: player_score.avg,
       yds_g: player_score.yds_g,
       td: player_score.td,
-      lng: player_score.lng,
+      lng: Float.to_string(player_score.lng) <> (player_score.lng_t || ""),
       lng_t: player_score.lng_t,
       first: player_score.first,
       first_percent: player_score.first_percent,

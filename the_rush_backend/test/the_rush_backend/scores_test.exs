@@ -21,8 +21,6 @@ defmodule TheRushBackend.ScoresTest do
       player_score
     end
 
-
-
     test "list_player_scores/0 returns all player_scores" do
       player_score = player_score_fixture()
       assert Scores.list_player_scores() == [player_score]

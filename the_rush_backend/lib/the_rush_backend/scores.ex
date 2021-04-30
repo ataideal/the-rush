@@ -21,6 +21,38 @@ defmodule TheRushBackend.Scores do
     Repo.all(PlayerScore)
   end
 
+  def list_player_scores(params) do
+    from(ps in PlayerScore)
+    |> filter_name(params["player"])
+    |> sort_by_attribute(params["sort_by"], params["sort_desc"])
+    |> paginate(String.to_integer(params["page"]), String.to_integer(params["per_page"]))
+    |> Repo.all()
+  end
+
+  def filter_name(query, name) do
+    query_name = "%#{name}%"
+    from ps in query,
+    where: ilike(ps.player, ^query_name)
+  end
+
+  def sort_by_attribute(query, attribute, desc) do
+    order_by = case desc do
+      "true" -> Keyword.new([{:desc, String.to_atom(attribute)}])
+      _ -> Keyword.new([{:asc, String.to_atom(attribute)}])
+    end
+
+    from(ps in query)
+    |> order_by(ps, ^order_by)
+  end
+
+  def paginate(query, page, per_page) do
+    offset = per_page * (page-1)
+
+    from ps in query,
+    limit: ^per_page,
+    offset: ^offset
+  end
+
   @doc """
   Gets a single player_score.
 
@@ -107,11 +139,19 @@ defmodule TheRushBackend.Scores do
     |> create_player_score()
   end
 
-
-  def count_player_score(_options \\ %{}) do
+  def count_player_score() do
     query =
       from ps in PlayerScore, select: count(ps.id)
 
     query |> Repo.one()
+  end
+
+  def count_player_score(_params = %{"player"=> name}) do
+    query =
+      from ps in PlayerScore, select: count(ps.id)
+
+    query
+    |> filter_name(name)
+    |> Repo.one()
   end
 end

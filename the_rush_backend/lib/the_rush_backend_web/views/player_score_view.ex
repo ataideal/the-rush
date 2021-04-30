@@ -9,14 +9,6 @@ defmodule TheRushBackendWeb.PlayerScoreView do
     }
   end
 
-  def render("index.json", %{player_scores: player_scores}) do
-    %{data: render_many(player_scores, PlayerScoreView, "player_score.json")}
-  end
-
-  def render("show.json", %{player_score: player_score}) do
-    %{data: render_one(player_score, PlayerScoreView, "player_score.json")}
-  end
-
   def render("player_score.json", %{player_score: player_score}) do
     %{id: player_score.id,
       player: player_score.player,

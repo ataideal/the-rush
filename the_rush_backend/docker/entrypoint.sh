@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mix deps.get
+
 # Wait until Postgres is ready
 while ! pg_isready -q -h db -p 5432 -U postgres
 do
@@ -14,5 +16,4 @@ if [[ -z `psql -Atqc "\\list the_rush_backend_dev"` ]]; then
   mix run priv/repo/seeds.exs
 fi
 
-mix deps.get
 exec mix phx.server

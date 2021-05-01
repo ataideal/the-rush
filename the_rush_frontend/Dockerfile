@@ -5,6 +5,4 @@ RUN mkdir $APP_HOME
 ADD . $APP_HOME
 WORKDIR $APP_HOME
 
-RUN npm install
-
-CMD [ "npm","run","serve"]
+CMD ["docker/entrypoint.sh"]

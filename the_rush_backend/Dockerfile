@@ -12,6 +12,4 @@ RUN mkdir $APP_HOME
 ADD . $APP_HOME
 WORKDIR $APP_HOME
 
-RUN mix deps.get
-
 CMD ["docker/entrypoint.sh"]

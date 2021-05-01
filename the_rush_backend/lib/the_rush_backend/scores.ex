@@ -29,6 +29,13 @@ defmodule TheRushBackend.Scores do
     |> Repo.all()
   end
 
+  def list_player_scores(params, paginate: false) do
+    from(ps in PlayerScore)
+    |> filter_name(params["player"])
+    |> sort_by_attribute(params["sort_by"], params["sort_desc"])
+    |> Repo.all()
+  end
+
   def filter_name(query, name) do
     query_name = "%#{name}%"
     from ps in query,

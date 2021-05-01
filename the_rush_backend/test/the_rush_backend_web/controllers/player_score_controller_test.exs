@@ -106,6 +106,21 @@ defmodule TheRushBackendWeb.PlayerScoreControllerTest do
       ]
       assert json_response(conn, 200)["pagination"] == %{"total"=> 2}
     end
+  end
 
+  describe "csv" do
+    test "when player_scores has users returns array ordered by name and total", %{conn: conn} do
+      player_score = fixture(:player_score, %{})
+      player_score_2 = fixture(:player_score, %{player: "another player"})
+      conn = get(conn, Routes.player_score_path(conn, :csv), fixture(:filter, %{}))
+
+      assert response(conn, 200) ==
+      "id,Player,Team,Pos,Att,Att/G,Yds,Avg,Yds/G,TD,Lng,1st,1st%,20+,40+,FUM\r\n" <>
+      "#{player_score_2.id},another player,some team,some pos,42,120.5,120.5,120.5,120.5,42,120.5,42,120.5,42,42,42\r\n" <>
+      "#{player_score.id},some player,some team,some pos,42,120.5,120.5,120.5,120.5,42,120.5,42,120.5,42,42,42\r\n"
+
+      assert get_resp_header(conn, "content-type") == ["text/csv"]
+
+    end
   end
 end

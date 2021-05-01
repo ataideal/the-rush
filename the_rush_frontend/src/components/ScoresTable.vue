@@ -2,13 +2,30 @@
   <div>
   <h1>Scores table</h1>
 
-  <v-text-field
-    solo
-    label="Player Name"
-    append-icon="mdi-magnify"
-    v-model="player"
-    @input="updatePlayerName"
-  ></v-text-field>
+  <div class="d-flex">
+    <v-text-field
+      solo
+      label="Player Name"
+      append-icon="mdi-magnify"
+      v-model="player"
+      @input="updatePlayerName"
+    ></v-text-field>
+    <v-btn
+      :loading="loadingDownload"
+      :disabled="loadingDownload"
+      color="blue-grey"
+      class="ma-2 white--text"
+      @click="downloadCSV(options)"
+    >
+      Export to CSV
+      <v-icon
+        right
+        dark
+      >
+        mdi-download
+      </v-icon>
+    </v-btn>
+  </div>
   <v-data-table
     hide-default-footer
     class="elevation-1"
@@ -64,6 +81,7 @@
         { text: 'R. 40+ Yards Each', value: 'forty_plus' },
         { text: 'R. Fumbles', value: 'fum' },
       ],
+      loadingDownload: false
     }),
     methods: {
       fetchData(options){
@@ -94,6 +112,29 @@
         this.timeout = setTimeout(() => {
           this.options = ({...this.options, page: 1})
         }, 300);
+      },
+      downloadCSV(options) {
+        this.loadingDownload = true
+        axios.get(`${process.env.VUE_APP_API_BASE_URL}/scores_csv`, {
+          params: {
+            page: options.page || 1,
+            per_page: options.itemsPerPage || 10,
+            sort_by: options.sortBy[0] || "player",
+            sort_desc: options.sortDesc[0] || false,
+            player: this.player || ""
+          },
+          responseType: 'blob'
+        })
+        .then(response => {
+          const blob = new Blob([response.data], { type: 'text/csv' })
+          const link = document.createElement('a')
+          link.href = URL.createObjectURL(blob)
+          link.download = "player_scores.csv"
+          link.click()
+          URL.revokeObjectURL(link.href)
+        })
+        .catch((err) => console.log(err))
+        .finally(() => this.loadingDownload = false)
       },
       ...mapActions({setScores:'scores/setScores'})
     },
